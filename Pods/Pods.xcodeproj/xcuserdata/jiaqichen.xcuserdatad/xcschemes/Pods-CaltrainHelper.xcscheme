@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "0800"
+   LastUpgradeVersion = "0930"
    version = "1.3">
    <BuildAction
       parallelizeBuildables = "YES"
@@ -14,10 +14,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "6828A605218F4EC600E47DB9"
-               BuildableName = "CaltrainHelper.app"
-               BlueprintName = "CaltrainHelper"
-               ReferencedContainer = "container:CaltrainHelper.xcodeproj">
+               BlueprintIdentifier = "514737C136B5EABAC9D794D646292C7B"
+               BuildableName = "Pods_CaltrainHelper.framework"
+               BlueprintName = "Pods-CaltrainHelper"
+               ReferencedContainer = "container:Pods.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -29,15 +29,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <Testables>
       </Testables>
-      <MacroExpansion>
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6828A605218F4EC600E47DB9"
-            BuildableName = "CaltrainHelper.app"
-            BlueprintName = "CaltrainHelper"
-            ReferencedContainer = "container:CaltrainHelper.xcodeproj">
-         </BuildableReference>
-      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </TestAction>
@@ -51,16 +42,15 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6828A605218F4EC600E47DB9"
-            BuildableName = "CaltrainHelper.app"
-            BlueprintName = "CaltrainHelper"
-            ReferencedContainer = "container:CaltrainHelper.xcodeproj">
+            BlueprintIdentifier = "514737C136B5EABAC9D794D646292C7B"
+            BuildableName = "Pods_CaltrainHelper.framework"
+            BlueprintName = "Pods-CaltrainHelper"
+            ReferencedContainer = "container:Pods.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
       <AdditionalOptions>
       </AdditionalOptions>
    </LaunchAction>
@@ -70,16 +60,6 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "6828A605218F4EC600E47DB9"
-            BuildableName = "CaltrainHelper.app"
-            BlueprintName = "CaltrainHelper"
-            ReferencedContainer = "container:CaltrainHelper.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">
