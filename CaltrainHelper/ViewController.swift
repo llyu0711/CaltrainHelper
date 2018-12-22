@@ -175,7 +175,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         apiCallGroup.notify(queue: .main) {
             let minutes: Double = minTimeInterval/60.0
             if minutes < 1 {
-                self.etaLabel.text = "less than 1 min"
+                self.etaLabel.text = "< 1 min"
             } else if minTimeInterval != Double.greatestFiniteMagnitude {
                 self.etaLabel.text = "\(String(format: "%.0f", minutes)) min"
             } else {
