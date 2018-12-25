@@ -12,21 +12,28 @@ import os
 import Alamofire
 import SwiftyJSON
 
-class ViewController: UIViewController, CLLocationManagerDelegate {
+class CaltrainTableViewCell: UITableViewCell {
+    @IBOutlet weak var calTrainNumberLabel: UILabel!
+    @IBOutlet weak var etaLabel: UILabel!
+    @IBOutlet weak var caltrainTypeLabel: UILabel!
+}
+
+class ViewController: UIViewController, CLLocationManagerDelegate, UITableViewDelegate, UITableViewDataSource {
     @IBOutlet weak var directionControl: UISegmentedControl!
     @IBOutlet weak var locateButton: UIButton!
     @IBOutlet weak var caltrainStationTextField: UITextField!
-    @IBOutlet weak var etaLabel: UILabel!
-    @IBOutlet weak var scrollView: UIScrollView!
+    @IBOutlet weak var tableView: UITableView!
     
     // final static variables
     let googleApiKey = "AIzaSyAzXsL8UH-bKvPGxdA_T758Wrto12J63Fk"
     let transitApiKey = "50d88fda-9e5b-4287-b431-5f6405ba576c"
     var caltrainAgencyCode = "CT"
+    let refreshControl = UIRefreshControl()
     
     //global variables
     var locationManager: CLLocationManager = CLLocationManager()
     var caltrainStations: [CaltrainStation] = []
+    var incommingTrains: [Caltrain] = []
     var currentLocation: CLLocation? = nil {
         willSet(newLocation) {}
         didSet {
@@ -39,13 +46,20 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             os_log("Current nearest caltrain station set to:%s", String(currentNearestCaltrainStation!.getName()))
             caltrainStationTextField.text = currentNearestCaltrainStation!.getName()
             if currentNearestCaltrainStation?.getName() == "San Francisco" {
-                directionControl.setEnabled(false, forSegmentAt: 0) // there is no north bound traffic from SF
+                directionControl.setEnabled(false, forSegmentAt: 0) // there is no north bound traffic beyound SF
+                directionControl.setEnabled(true, forSegmentAt: 1)
                 directionControl.selectedSegmentIndex = 1 // south bound direction selected by default
             } else {
-                directionControl.setEnabled(true, forSegmentAt: 0)
+                if currentNearestCaltrainStation?.getName() == "Tamien" { // there is no south bound traffic beyound Tamien
+                    directionControl.setEnabled(true, forSegmentAt: 0)
+                    directionControl.setEnabled(false, forSegmentAt: 1)
+                } else {
+                    directionControl.setEnabled(true, forSegmentAt: 0)
+                    directionControl.setEnabled(true, forSegmentAt: 1)
+                }
                 directionControl.selectedSegmentIndex = 0 // north bound direction selected by default
             }
-            determinETA()
+            determinIncommingTrains()
         }
     }
     
@@ -58,14 +72,24 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             currentNearestCaltrainStation?.getName() == "San Francisco" {
             return
         }
-        determinETA()
+        determinIncommingTrains()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        self.etaLabel.text = "loading..."
         caltrainStationTextField.delegate = self
+        tableView.delegate = self
+        tableView.dataSource = self
+        if #available(iOS 10.0, *) {
+            tableView.refreshControl = refreshControl
+        } else {
+            tableView.addSubview(refreshControl)
+        }
+        refreshControl.addTarget(self, action: #selector(refreshIncommingTrainData(_:)), for: .valueChanged)
+        refreshControl.tintColor = UIColor(red:0.25, green:0.72, blue:0.85, alpha:1.0)
+        refreshControl.attributedTitle = NSAttributedString(string: "Fetching Data...")
+        
         initializeStations()
         determineCurrentLocation()
         createCaltrainStationPicker()
@@ -79,6 +103,10 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    func refreshIncommingTrainData(_ sender: Any) {
+        determinIncommingTrains()
     }
     
     func determineCurrentLocation() {
@@ -124,10 +152,25 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             CaltrainStation(name: "Hayward Park", latitude: 37.552938, longtitude: -122.309338, nbStopCode: 70101, sbStopCode: 70102),
             CaltrainStation(name: "Hillsdale", latitude: 37.5378688, longtitude: -122.297349, nbStopCode: 70111, sbStopCode: 70112),
             CaltrainStation(name: "Belmont", latitude: 37.52089, longtitude: -122.275738, nbStopCode: 70121, sbStopCode: 70122),
+            CaltrainStation(name: "San Carlos", latitude: 37.507933, longtitude: -122.260266, nbStopCode: 70131, sbStopCode: 70132),
+            CaltrainStation(name: "Redwood City", latitude: 37.486159, longtitude: -122.231936, nbStopCode: 70141, sbStopCode: 70142),
+            // zone three
+            CaltrainStation(name: "Menlo Park", latitude: 37.454856, longtitude: -122.182297, nbStopCode: 70161, sbStopCode: 70162),
+            CaltrainStation(name: "Palo Alto", latitude: 37.443475, longtitude: -122.164614, nbStopCode: 70171, sbStopCode: 70172),
+            CaltrainStation(name: "California Ave", latitude: 37.429365, longtitude: -122.141927, nbStopCode: 70191, sbStopCode: 70192),
+            CaltrainStation(name: "San Antonio", latitude: 37.407323, longtitude: -122.107069, nbStopCode: 70201, sbStopCode: 70202),
+            CaltrainStation(name: "Mountain View", latitude: 37.394459, longtitude: -122.075956, nbStopCode: 70211, sbStopCode: 70212),
+            CaltrainStation(name: "Sunnyvale", latitude: 37.378789, longtitude: -122.031423, nbStopCode: 70221, sbStopCode: 70222),
+            //zone four
+            CaltrainStation(name: "Lawrence", latitude: 37.370598, longtitude: -121.997114, nbStopCode: 70231, sbStopCode: 70232),
+            CaltrainStation(name: "Santa Clara", latitude: 37.353238, longtitude: -121.93608, nbStopCode: 70241, sbStopCode: 70242),
+            CaltrainStation(name: "College Park", latitude: 37.342384, longtitude: -121.9146, nbStopCode: 70251, sbStopCode: 70252),
+            CaltrainStation(name: "San Jose Diridon", latitude: 37.329239, longtitude: -121.903011, nbStopCode: 70261, sbStopCode: 70262),
+            CaltrainStation(name: "Tamien", latitude: 37.31174, longtitude: -121.883721, nbStopCode: 70271, sbStopCode: 70272),
         ]
     }
     
-    func determinETA() {
+    func determinIncommingTrains() {
         let apiCallGroup = DispatchGroup()
         let dateFormatter = DateFormatter()
         dateFormatter.dateFormat = "yyyy-MM-dd'T'HH:mm:ssZ"
@@ -136,7 +179,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
         
         apiCallGroup.enter()
         
-        var minTimeInterval: Double = Double.greatestFiniteMagnitude
         var stopCode: Int
         if directionControl.selectedSegmentIndex == 1 {
             stopCode = currentNearestCaltrainStation!.getSbCode()
@@ -144,43 +186,42 @@ class ViewController: UIViewController, CLLocationManagerDelegate {
             stopCode = currentNearestCaltrainStation!.getNbCode()
         }
         
-        let transitApiUrl = "https://api.511.org/transit/StopMonitoring?api_key=\(transitApiKey)&agency=\(caltrainAgencyCode)&stopCode=\(stopCode)"
-        
+        let transitApiUrl = "https://api.511.org/transit/VehicleMonitoring?api_key=\(transitApiKey)&agency=\(caltrainAgencyCode)"
+        os_log("Checking caltrain information for stop: %d", stopCode)
         Alamofire.request(
             transitApiUrl,
             method: .get)
             .validate()
             .responseJSON { response in
+                self.incommingTrains = []
                 guard response.result.isSuccess else {
                     os_log("Error getting transit data for stop: %d", stopCode)
                     return
                 }
                 let jsonResponse = JSON(response.result.value!)
-                let monitoredStopVisit = jsonResponse["ServiceDelivery"]["StopMonitoringDelivery"]["MonitoredStopVisit"]
-                for stopVisit in monitoredStopVisit.arrayValue {
-                    let monitoredVehicleJourney = stopVisit["MonitoredVehicleJourney"]
-                    let monitoredCall = monitoredVehicleJourney["MonitoredCall"]
-                    let aimedDepartureTimeString = monitoredCall["AimedDepartureTime"].stringValue
-                    let aimedDepartureTime: Date? = dateFormatter.date(from: aimedDepartureTimeString)
-                    
-                    let timeInterval: Double = aimedDepartureTime!.timeIntervalSince(Date())
-                    
-                    if timeInterval < minTimeInterval {
-                        minTimeInterval = timeInterval
+                let vehicleActivities = jsonResponse["Siri"]["ServiceDelivery"]["VehicleMonitoringDelivery"]["VehicleActivity"]
+                for vehicleActivity in vehicleActivities.arrayValue {
+                    let monitoredVehicleJourney = vehicleActivity["MonitoredVehicleJourney"]
+                    let caltrainType = monitoredVehicleJourney["LineRef"].stringValue
+                    let vehicleRef = monitoredVehicleJourney["VehicleRef"].intValue
+                    let onwardCalls = monitoredVehicleJourney["OnwardCall"]["OnwardCall"].arrayValue
+                    for onwardCall in onwardCalls {
+                        if onwardCall["StopPointRef"].intValue == stopCode{
+                            let aimedDepartureTimeString = onwardCall["ExpectedDepartureTime"].stringValue
+                            let aimedDepartureTime: Date? = dateFormatter.date(from: aimedDepartureTimeString)
+                            let timeInterval: Double = aimedDepartureTime!.timeIntervalSince(Date())
+                            let minutes: Int? = timeInterval/60.0 < 1 ? 1 : Int(String(format: "%.0f", timeInterval/60.0))
+                            self.incommingTrains.append(Caltrain(number: vehicleRef, eta: minutes!, type: caltrainType))
+                        }
                     }
                 }
                 apiCallGroup.leave()
         }
         
         apiCallGroup.notify(queue: .main) {
-            let minutes: Double = minTimeInterval/60.0
-            if minutes < 1 {
-                self.etaLabel.text = "< 1 min"
-            } else if minTimeInterval != Double.greatestFiniteMagnitude {
-                self.etaLabel.text = "\(String(format: "%.0f", minutes)) min"
-            } else {
-                self.etaLabel.text = "No data"
-            }
+            self.incommingTrains = self.incommingTrains.sorted(by: {$0.getEta() < $1.getEta()})
+            self.tableView.reloadData()
+            self.refreshControl.endRefreshing()
         }
     }
     
@@ -262,6 +303,19 @@ extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource, UITextFi
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
         return false
+    }
+    
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        return self.incommingTrains.count
+    }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "CaltrainCell", for: indexPath) as! CaltrainTableViewCell
+        
+        cell.calTrainNumberLabel.text = String(self.incommingTrains[indexPath.row].getNumber())
+        cell.etaLabel.text = "\(self.incommingTrains[indexPath.row].getEta()) min"
+        cell.caltrainTypeLabel.text = self.incommingTrains[indexPath.row].getType()
+        return cell
     }
 }
 
