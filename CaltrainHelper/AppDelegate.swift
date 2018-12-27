@@ -7,16 +7,55 @@
 //
 
 import UIKit
+import os
+import UserNotifications
+import Alamofire
+import SwiftyJSON
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-
+    var processedSituations: Set<Int> = []
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        UIApplication.shared.setMinimumBackgroundFetchInterval(UIApplicationBackgroundFetchIntervalMinimum)
         return true
+    }
+    
+    func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        if let vc = window?.rootViewController as? ViewController {
+            let announcementUrl = "https://api.511.org/Transit/transitannouncements?api_key=50d88fda-9e5b-4287-b431-5f6405ba576c&Operator_id=CT"
+            Alamofire.request(
+                announcementUrl,
+                method: .get)
+                .validate()
+                .responseJSON { response in
+                    guard response.result.isSuccess else {
+                        os_log("Error getting announcement")
+                        completionHandler(.failed)
+                        return
+                    }
+                    let jsonResponse = JSON(response.result.value!)
+                    let situations = jsonResponse["Siri"]["ServiceDelivery"]["SituationExchangeDelivery"]["Situations"]
+                    if situations != JSON.null {
+                        let ptSituationElement = situations["PtSituationElement"]
+                        if !self.processedSituations.contains(ptSituationElement["SituationNumber"].intValue) {
+                            self.processedSituations.insert(ptSituationElement["SituationNumber"].intValue)
+                            vc.fetchAnnouncement(summary: ptSituationElement["Summary"].stringValue, description: ptSituationElement["Description"].stringValue)
+                            completionHandler(.newData)
+                            return
+                        } else {
+                            completionHandler(.noData)
+                            return
+                        }
+                    } else {
+                        completionHandler(.noData)
+                        return
+                    }
+            }
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
@@ -40,7 +79,5 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
-
-
 }
 

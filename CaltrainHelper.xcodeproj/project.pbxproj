@@ -13,6 +13,7 @@
 		6828A611218F4EC700E47DB9 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6828A610218F4EC700E47DB9 /* Assets.xcassets */; };
 		6828A614218F4EC700E47DB9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 6828A612218F4EC700E47DB9 /* LaunchScreen.storyboard */; };
 		6828A61D218F60D700E47DB9 /* CaltrainStation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6828A61C218F60D700E47DB9 /* CaltrainStation.swift */; };
+		6832733821D42A98005F48C0 /* StringExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6832733721D42A98005F48C0 /* StringExtension.swift */; };
 		688C5BE921CEDCD80087E459 /* Caltrain.swift in Sources */ = {isa = PBXBuildFile; fileRef = 688C5BE821CEDCD80087E459 /* Caltrain.swift */; };
 		80A8320CCD216CF6EAD82E0B /* Pods_CaltrainHelper.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 28D2D1913891858C5CA6A890 /* Pods_CaltrainHelper.framework */; };
 /* End PBXBuildFile section */
@@ -28,7 +29,9 @@
 		6828A613218F4EC700E47DB9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		6828A615218F4EC700E47DB9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		6828A61C218F60D700E47DB9 /* CaltrainStation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CaltrainStation.swift; sourceTree = "<group>"; };
+		6832733721D42A98005F48C0 /* StringExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StringExtension.swift; sourceTree = "<group>"; };
 		688C5BE821CEDCD80087E459 /* Caltrain.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Caltrain.swift; sourceTree = "<group>"; };
+		688C5BEA21D3556B0087E459 /* CaltrainHelper.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = CaltrainHelper.entitlements; sourceTree = "<group>"; };
 		77EDDEB4DD4FAE2D8F5FB53E /* Pods-CaltrainHelper.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-CaltrainHelper.release.xcconfig"; path = "Pods/Target Support Files/Pods-CaltrainHelper/Pods-CaltrainHelper.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -73,6 +76,7 @@
 		6828A608218F4EC600E47DB9 /* CaltrainHelper */ = {
 			isa = PBXGroup;
 			children = (
+				688C5BEA21D3556B0087E459 /* CaltrainHelper.entitlements */,
 				6828A61B218F60AA00E47DB9 /* Models */,
 				6828A609218F4EC700E47DB9 /* AppDelegate.swift */,
 				6828A60B218F4EC700E47DB9 /* ViewController.swift */,
@@ -89,6 +93,7 @@
 			children = (
 				6828A61C218F60D700E47DB9 /* CaltrainStation.swift */,
 				688C5BE821CEDCD80087E459 /* Caltrain.swift */,
+				6832733721D42A98005F48C0 /* StringExtension.swift */,
 			);
 			name = Models;
 			sourceTree = "<group>";
@@ -138,6 +143,14 @@
 						CreatedOnToolsVersion = 8.0;
 						DevelopmentTeam = C9MB2KE645;
 						ProvisioningStyle = Automatic;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+							com.apple.Push = {
+								enabled = 1;
+							};
+						};
 					};
 				};
 			};
@@ -220,6 +233,7 @@
 			files = (
 				6828A60C218F4EC700E47DB9 /* ViewController.swift in Sources */,
 				6828A60A218F4EC700E47DB9 /* AppDelegate.swift in Sources */,
+				6832733821D42A98005F48C0 /* StringExtension.swift in Sources */,
 				6828A61D218F60D700E47DB9 /* CaltrainStation.swift in Sources */,
 				688C5BE921CEDCD80087E459 /* Caltrain.swift in Sources */,
 			);
@@ -346,6 +360,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_USE_OPTIMIZATION_PROFILE = YES;
+				CODE_SIGN_ENTITLEMENTS = CaltrainHelper/CaltrainHelper.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = C9MB2KE645;
@@ -364,6 +379,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_USE_OPTIMIZATION_PROFILE = YES;
+				CODE_SIGN_ENTITLEMENTS = CaltrainHelper/CaltrainHelper.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = C9MB2KE645;

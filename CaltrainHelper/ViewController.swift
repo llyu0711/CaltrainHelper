@@ -11,6 +11,7 @@ import CoreLocation
 import os
 import Alamofire
 import SwiftyJSON
+import UserNotifications
 
 class CaltrainTableViewCell: UITableViewCell {
     @IBOutlet weak var calTrainNumberLabel: UILabel!
@@ -27,7 +28,8 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UITableViewDe
     // final static variables
     let googleApiKey = "AIzaSyAzXsL8UH-bKvPGxdA_T758Wrto12J63Fk"
     let transitApiKey = "50d88fda-9e5b-4287-b431-5f6405ba576c"
-    var caltrainAgencyCode = "CT"
+    let caltrainAgencyCode = "CT"
+    let notificationCenter = UNUserNotificationCenter.current()
     let refreshControl = UIRefreshControl()
     
     //global variables
@@ -91,6 +93,7 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UITableViewDe
         refreshControl.attributedTitle = NSAttributedString(string: "Fetching Data...")
         
         initializeStations()
+        registerForPushNotifications()
         determineCurrentLocation()
         createCaltrainStationPicker()
         createCaltrainStationTextFieldToolbar()
@@ -112,7 +115,6 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UITableViewDe
     func determineCurrentLocation() {
         locationManager.delegate = self
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        locationManager.requestAlwaysAuthorization()
         
         if CLLocationManager.locationServicesEnabled() {
             locationManager.startUpdatingLocation()
@@ -225,6 +227,29 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UITableViewDe
         }
     }
     
+    func fetchAnnouncement(summary: String, description: String) {
+        notificationCenter.getNotificationSettings { (settings) in
+            if settings.authorizationStatus != .authorized {
+                return
+            } else {
+                os_log("Fetched announcement with summary %s", summary)
+                let content = UNMutableNotificationContent()
+                content.title = "New Caltrain Announcement"
+                content.subtitle = summary
+                content.body = description
+                content.sound = UNNotificationSound.default()
+                
+                let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 2.0, repeats: false)
+                let request = UNNotificationRequest(identifier: "ContentIdentifier", content: content, trigger: trigger)
+                self.notificationCenter.add(request) { (error) in
+                    if error != nil {
+                        os_log("Error sending local notofication: %s", String(describing: error))
+                    }
+                }
+            }
+        }
+    }
+    
     func determineNearestStation() {
         var minDistance = INTPTR_MAX
         var localNearestStation: CaltrainStation?
@@ -281,6 +306,17 @@ class ViewController: UIViewController, CLLocationManagerDelegate, UITableViewDe
     @objc func dismissKeyboard() {
         view.endEditing(true)
     }
+    
+    func registerForPushNotifications() {
+        notificationCenter
+            .requestAuthorization(options: [.alert, .sound, .badge]) {
+                [weak self] granted, error in
+                
+                os_log("Permission granted: %d", granted)
+                self?.locationManager.requestAlwaysAuthorization()
+                guard granted else { return }
+        }
+    }
 }
 
 extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource, UITextFieldDelegate {
@@ -311,9 +347,21 @@ extension ViewController: UIPickerViewDelegate, UIPickerViewDataSource, UITextFi
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CaltrainCell", for: indexPath) as! CaltrainTableViewCell
-        
+        let lightGreen = UIColor(red: 0.58, green: 0.77, blue: 0.49, alpha: 1.0)
+        let darkYellow = UIColor(red: 0.95, green: 0.76, blue: 0.20, alpha: 1.0)
+        let darkRed = UIColor(red: 0.80, green: 0.00, blue: 0.00, alpha: 1.0)
         cell.calTrainNumberLabel.text = String(self.incommingTrains[indexPath.row].getNumber())
+        var etaTextColor: UIColor = UIColor.black
+        if self.incommingTrains[indexPath.row].getEta() <= 10 {
+            etaTextColor = lightGreen
+        } else if self.incommingTrains[indexPath.row].getEta() > 10 &&
+            self.incommingTrains[indexPath.row].getEta() <= 25 {
+            etaTextColor = darkYellow
+        } else {
+            etaTextColor = darkRed
+        }
         cell.etaLabel.text = "\(self.incommingTrains[indexPath.row].getEta()) min"
+        cell.etaLabel.textColor = etaTextColor
         cell.caltrainTypeLabel.text = self.incommingTrains[indexPath.row].getType()
         return cell
     }
